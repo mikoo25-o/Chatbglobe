@@ -31,27 +31,6 @@ const wss = new WebSocketServer({
 wsHandler(wss)
 
 //
-// CORS
-//
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://chatbglobe-27ihw4983-mikes-projects-e87643a8.vercel.app'
-]
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true)
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true)
-    }
-
-    return callback(new Error('CORS not allowed'))
-  },
-  credentials: true
-}))
-
-//
 // Middleware
 //
 app.use(
@@ -60,18 +39,42 @@ app.use(
   })
 )
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://chatbglobe.vercel.app'
+]
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(new Error('Not allowed by CORS'))
+    },
+    credentials: true
+  })
+)
+
 app.use(morgan('dev'))
 
-app.use(express.json({
-  limit: '10mb'
-}))
+app.use(
+  express.json({
+    limit: '10mb'
+  })
+)
 
-app.use(express.urlencoded({
-  extended: true
-}))
+app.use(
+  express.urlencoded({
+    extended: true
+  })
+)
 
 //
-// ROUTES
+// Routes
 //
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
@@ -81,20 +84,13 @@ app.use('/api/webhooks', webhookRoutes)
 app.use('/api/campaigns', campaignRoutes)
 
 //
-// HEALTH
+// Health
 //
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     time: new Date().toISOString()
   })
-})
-
-//
-// ROOT
-//
-app.get('/', (req, res) => {
-  res.send('TransMsg backend running')
 })
 
 //
@@ -124,7 +120,7 @@ async function start() {
 
   startQueueWorker()
 
-  httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`)
   })
 }
