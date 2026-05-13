@@ -39,9 +39,32 @@ app.use(
   })
 )
 
+//
+// CORS FIX
+//
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+]
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+      //
+      // allow requests like Postman/mobile/no-origin
+      //
+      if (!origin) {
+        return callback(null, true)
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      console.log('Blocked by CORS:', origin)
+
+      return callback(new Error('CORS not allowed'))
+    },
     credentials: true
   })
 )
@@ -117,8 +140,8 @@ async function start() {
   // Start server
   //
   httpServer.listen(PORT, () => {
-    console.log(`\n🚀 TransMsg backend running on http://localhost:${PORT}`)
-    console.log(`📡 WebSocket ready on ws://localhost:${PORT}/ws`)
+    console.log(`\n🚀 TransMsg backend running on port ${PORT}`)
+    console.log(`📡 WebSocket ready`)
     console.log(`📨 Queue worker active\n`)
   })
 }
